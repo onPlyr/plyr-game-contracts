@@ -3,39 +3,47 @@ pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "./interfaces/IRegister.sol";
 import "./interfaces/IMirror.sol";
 
-contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable {
-    address public operator;
-    address public registerSC;
+contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControlUpgradeable {
     
-    mapping(address => bool) public allowedGames;
+    address public registerSC;
+    address[] public gameRules;
+    mapping(address => bool) public allowedGameRules;
+
+    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
     event GameConfigured(address _game, bool _allowed);
 
     modifier onlyOperator() {
-        require(msg.sender == operator || msg.sender == owner(), "Router: caller is not the operator");
+        require(hasRole(OPERATOR_ROLE, msg.sender) || msg.sender == owner(), "Router: caller is not the operator");
         _;
     }
 
-    modifier onlyGame() {
-        require(allowedGames[msg.sender], "Router: caller is not the game");
+    modifier onlyAllowGameRule() {
+        require(allowedGameRules[msg.sender], "Router: caller is not the game");
         _;
     }
 
     constructor() {}
 
     function initialize(address _owner, address _operator, address _registerSC) public initializer {
-        operator = _operator;
+        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        _grantRole(OPERATOR_ROLE, _operator);
         registerSC = _registerSC;
         __Ownable_init(_owner);
         __ReentrancyGuard_init();
+        __AccessControl_init();
     }
 
-    function configGame(address _game, bool _allowed) external onlyOwner {
-        allowedGames[_game] = _allowed;
-        emit GameConfigured(_game, _allowed);
+    function configGameRule(address _gameRule, bool _allowed) external onlyOwner {
+        require(_gameRule != address(0), "Router: game rule is the zero address");
+        require(!allowedGameRules[_gameRule], "Router: game rule is already configured");
+        gameRules.push(_gameRule);
+        allowedGameRules[_gameRule] = _allowed;
+        emit GameConfigured(_gameRule, _allowed);
     }
 
     // Register Functions
@@ -56,27 +64,27 @@ contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // Mirror Functions
-    function nativeTransfer(address _from, address payable _to, uint256 _amount) external nonReentrant onlyGame {
+    function nativeTransfer(address _from, address payable _to, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).nativeTransfer(_to, _amount);
     }
 
-    function transfer(address _token, address _from, address _to, uint256 _amount) external nonReentrant onlyGame {
+    function transfer(address _token, address _from, address _to, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).transfer(_token, _to, _amount);
     }
 
-    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, bytes calldata data) external nonReentrant onlyGame {
+    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, bytes calldata data) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).transferFrom(_token, _from, _to, _tokenId, data);
     }
 
-    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount, bytes calldata data) external nonReentrant onlyGame {
+    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount, bytes calldata data) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).transferFrom(_token, _from, _to, _tokenId, _amount, data);
     }
 
-    function approve(address _token, address _from, address _spender, uint256 _amount) external nonReentrant onlyGame {
+    function approve(address _token, address _from, address _spender, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).approve(_token, _spender, _amount);
     }

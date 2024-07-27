@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -12,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract Mirror is Initializable, AccessControl, ERC721Holder, ERC1155Holder {
+contract Mirror is Initializable, AccessControlUpgradeable, ERC721Holder, ERC1155Holder {
     using SafeERC20 for IERC20;
 
     address public primary;
@@ -38,6 +37,7 @@ contract Mirror is Initializable, AccessControl, ERC721Holder, ERC1155Holder {
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(OPERATOR_ROLE, _operator);
         primary = _primary;
+        __AccessControl_init();
     }
 
     receive() external payable {}
@@ -71,7 +71,7 @@ contract Mirror is Initializable, AccessControl, ERC721Holder, ERC1155Holder {
         paused = _paused;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155Holder, AccessControl) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155Holder, AccessControlUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
-contract Game is OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract RoundBasedGame is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     constructor() {}
 
