@@ -38,6 +38,10 @@ contract PlyrRegister is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         __ReentrancyGuard_init();
     }
 
+    function getUserInfo(address _primary) external view returns (address mirror, string memory username, uint64 chainId) {
+        return (userInfo[_primary].mirror, userInfo[_primary].username, userInfo[_primary].chainId);
+    }
+
     function createUser(address _primary, string calldata _username, uint64 _chainId) external onlyRouter {
         require(userInfo[_primary].mirror == address(0), "UserExisted");
         require(bytes(_username).length == 0, "UserNameEmpty");

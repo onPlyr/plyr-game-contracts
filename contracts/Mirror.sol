@@ -24,8 +24,8 @@ contract Mirror is Initializable, AccessControl, ERC721Holder, ERC1155Holder {
     uint256 public constant VERSION = 1;
 
     event MirrorTransferERC20(address _token, address _to, uint256 _amount);
-    event MirrorTransferERC721(address _token, address _from, address _to, uint256 _tokenId);
-    event MirrorTransferERC1155(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount);
+    event MirrorTransferERC721(address _token, address _from, address _to, uint256 _tokenId, bytes data);
+    event MirrorTransferERC1155(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount, bytes data);
     event MirrorNativeTransfer(address _to, uint256 _amount);
     event MirrorApprove(address _token, address _spender, uint256 _amount);
 
@@ -52,14 +52,14 @@ contract Mirror is Initializable, AccessControl, ERC721Holder, ERC1155Holder {
         emit MirrorTransferERC20(_token, _to, _amount);
     }
 
-    function transferFrom(address _token, address _from, address _to, uint256 _tokenId) external notPaused onlyRole(OPERATOR_ROLE) {
-        IERC721(_token).safeTransferFrom(_from, _to, _tokenId);
-        emit MirrorTransferERC721(_token, _from, _to, _tokenId);
+    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, bytes calldata data) external notPaused onlyRole(OPERATOR_ROLE) {
+        IERC721(_token).safeTransferFrom(_from, _to, _tokenId, data);
+        emit MirrorTransferERC721(_token, _from, _to, _tokenId, data);
     }
 
-    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount) external notPaused onlyRole(OPERATOR_ROLE) {
-        IERC1155(_token).safeTransferFrom(_from, _to, _tokenId, _amount, "");
-        emit MirrorTransferERC1155(_token, _from, _to, _tokenId, _amount);
+    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount, bytes calldata data) external notPaused onlyRole(OPERATOR_ROLE) {
+        IERC1155(_token).safeTransferFrom(_from, _to, _tokenId, _amount, data);
+        emit MirrorTransferERC1155(_token, _from, _to, _tokenId, _amount, data);
     }
 
     function approve(address _token, address _spender, uint256 _amount) external notPaused onlyRole(OPERATOR_ROLE) {
