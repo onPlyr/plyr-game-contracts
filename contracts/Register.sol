@@ -19,6 +19,7 @@ contract PlyrRegister is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     mapping(address => UserInfo) public userInfo;
     mapping(string => address) public ensRecords;
+    mapping(address => string) public ensNames;
 
 
     event MirrorDeployed(address indexed primary, address indexed mirror);
@@ -71,10 +72,16 @@ contract PlyrRegister is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function registerENS(string calldata _username, address _primary, address _mirror) internal {
         ensRecords[_username] = _primary;
         ensRecords[string.concat(_username, ".plyr")] = _mirror;
+        ensNames[_primary] = _username;
+        ensNames[_mirror] = string.concat(_username, ".plyr");
     }
 
-    function getENS(string calldata _ensName) external view returns (address) {
+    function getENSAddress(string calldata _ensName) external view returns (address) {
         return ensRecords[_ensName];
+    }
+
+    function getENSName(address _primary) external view returns (string memory) {
+        return ensNames[_primary];
     }
 
     function deleteUser(address _primary) external onlyRouter {
