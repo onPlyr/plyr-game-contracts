@@ -47,15 +47,15 @@ contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControl
     }
 
     // Register Functions
-    function createUser(address _primary, string calldata _username, uint64 _chainId) external {
+    function createUser(address _primary, string calldata _username, uint64 _chainId) external onlyOperator {
         IRegister(registerSC).createUser(_primary, _username, _chainId);
     }
 
-    function createUserWithMirror(address _primary, address _mirror, string calldata _username, uint64 _chainId) external {
+    function createUserWithMirror(address _primary, address _mirror, string calldata _username, uint64 _chainId) external onlyOperator {
         IRegister(registerSC).createUserWithMirror(_primary, _mirror, _username, _chainId);
     }
 
-    function deleteUser(address _primary) external {
+    function deleteUser(address _primary) external onlyOperator {
         IRegister(registerSC).deleteUser(_primary);
     }
 

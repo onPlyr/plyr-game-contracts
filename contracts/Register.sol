@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "./Mirror.sol";
 
-contract PlyrRegister is OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract Register is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     struct UserInfo {
         address mirror;
@@ -45,7 +45,7 @@ contract PlyrRegister is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function createUser(address _primary, string calldata _username, uint64 _chainId) external onlyRouter {
         require(userInfo[_primary].mirror == address(0), "UserExisted");
-        require(bytes(_username).length == 0, "UserNameEmpty");
+        require(bytes(_username).length > 0, "UserNameEmpty");
         
         userInfo[_primary].mirror = createMirror(_primary);
         userInfo[_primary].username = _username;
