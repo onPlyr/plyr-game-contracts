@@ -58,7 +58,7 @@ contract Register is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function createUserWithMirror(address _primary, address _mirror, string calldata _username, uint64 _chainId) external onlyRouter {
         require(userInfo[_primary].mirror == address(0), "UserExisted");
-        require(bytes(_username).length == 0, "UserNameEmpty");
+        require(bytes(_username).length > 0, "UserNameEmpty");
 
         userInfo[_primary].mirror = _mirror;
         userInfo[_primary].username = _username;
