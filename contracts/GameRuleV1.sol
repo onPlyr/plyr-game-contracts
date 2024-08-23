@@ -36,7 +36,7 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
     event GameRoomCreated(string gameId, uint256 roomId, address roomAddress);
 
     modifier onlyOperator {
-        require(operators[msg.sender], "GameRuleV1: only operators");
+        require(operators[msg.sender] || msg.sender == owner(), "GameRuleV1: only operators");
         _;
     }
 
