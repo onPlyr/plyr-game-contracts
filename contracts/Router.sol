@@ -6,8 +6,9 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "./interfaces/IRegister.sol";
 import "./interfaces/IMirror.sol";
+import "./Multicall.sol";
 
-contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControlUpgradeable {
+contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControlUpgradeable, Multicall {
     
     address public registerSC;
     address[] public gameRules;
@@ -64,27 +65,27 @@ contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControl
     }
 
     // Mirror Functions
-    function nativeTransfer(address _from, address payable _to, uint256 _amount) external nonReentrant onlyAllowGameRule {
+    function mirrorNativeTransfer(address _from, address payable _to, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).nativeTransfer(_to, _amount);
     }
 
-    function transfer(address _token, address _from, address _to, uint256 _amount) external nonReentrant onlyAllowGameRule {
+    function mirrorTokenTransfer(address _token, address _from, address _to, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).transfer(_token, _to, _amount);
     }
 
-    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, bytes calldata data) external nonReentrant onlyAllowGameRule {
+    function mirrorErc721TransferFrom(address _token, address _from, address _to, uint256 _tokenId, bytes calldata data) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).transferFrom(_token, _from, _to, _tokenId, data);
     }
 
-    function transferFrom(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount, bytes calldata data) external nonReentrant onlyAllowGameRule {
+    function mirrorErc1155TransferFrom(address _token, address _from, address _to, uint256 _tokenId, uint256 _amount, bytes calldata data) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).transferFrom(_token, _from, _to, _tokenId, _amount, data);
     }
 
-    function approve(address _token, address _from, address _spender, uint256 _amount) external nonReentrant onlyAllowGameRule {
+    function mirrorApprove(address _token, address _from, address _spender, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).approve(_token, _spender, _amount);
     }

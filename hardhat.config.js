@@ -4,12 +4,38 @@ require("dotenv").config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
-    version: "0.8.24",
-    settings: {
-      evmVersion: "london",
-      optimizer: {
-        enabled: false,
-        runs: 200
+    compilers: [
+      {
+        version: "0.8.24",
+        settings: {
+          evmVersion: "london",
+          optimizer: {
+            enabled: false,
+            runs: 200
+          }
+        }
+      },
+      {
+        version: "0.8.24",
+        settings: {
+          evmVersion: "london",
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      }
+    ],
+    overrides: {
+      "contracts/GameRuleV1.sol": {
+        version: "0.8.24",
+        settings: {
+          evmVersion: "london",
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
       }
     }
   },
