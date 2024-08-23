@@ -48,6 +48,10 @@ contract GameRoom is Ownable {
         }
     }
 
+    function isJoined(string memory plyrId) public view returns (bool) {
+        return joinedPlayers[plyrId] || keccak256(abi.encodePacked(plyrId)) == keccak256(abi.encodePacked(gameId));
+    }
+
     function registerToken(address _token) external onlyOwner {
         if (!tokenRegistered[_token]) {
             tokens.push(_token);
