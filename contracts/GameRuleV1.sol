@@ -51,10 +51,6 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
         __ReentrancyGuard_init();
     }
 
-    function configOperator(address _operator, bool _status) external onlyOwner {
-        operators[_operator] = _status;
-    }
-
     function create(string memory gameId) public onlyOperator {
         uint256 roomCount = gameRoomCount[gameId];
         gameRoomCount[gameId] = roomCount + 1;
@@ -66,16 +62,19 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
 
     function join(string memory gameId, uint256 roomId, string[] memory plyrIds) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
         GameRoom(payable(room)).join(plyrIds);
     }
 
     function leave(string memory gameId, uint256 roomId, string[] memory plyrIds) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
         GameRoom(payable(room)).leave(plyrIds);
     }
 
     function pay(string memory gameId, uint256 roomId, string memory plyrId, address token, uint256 amount) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
         if (token == address(0)) {
             address primary = IRegister(registerSC).getENSAddress(plyrId);
             IRouter(router).mirrorNativeTransfer(primary, payable(room), amount);
@@ -87,6 +86,7 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
 
     function earn(string memory gameId, uint256 roomId, string memory plyrId, address token, uint256 amount) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
         uint256 fee = amount * platformFee / 100;
         uint256 amountAfterFee = amount - fee;
         if (token == address(0)) {
@@ -102,12 +102,26 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
 
     function end(string memory gameId, uint256 roomId) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
         GameRoom(payable(room)).end();
     }
 
     function close(string memory gameId, uint256 roomId, address team) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
         GameRoom(payable(room)).close(team);
+    }
+
+    function configOperator(address _operator, bool _status) external onlyOwner {
+        operators[_operator] = _status;
+    }
+
+    function configPlatformFee(uint256 _platformFee) external onlyOwner {
+        platformFee = _platformFee;
+    }
+
+    function configFeeTo(address _feeTo) external onlyOwner {
+        feeTo = _feeTo;
     }
 
     function createGameRoom(string memory gameId, uint256 roomId) internal returns (address addr) {
