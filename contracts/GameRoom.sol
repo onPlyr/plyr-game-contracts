@@ -75,9 +75,13 @@ contract GameRoom is Ownable {
         require(!isEnded, "GameAlreadyEnded");
         for (uint256 i = 0; i < tokens.length; i++) {
             if (tokens[i] != address(0)) {
-                IERC20(tokens[i]).transfer(_team, IERC20(tokens[i]).balanceOf(address(this)));
+                if (IERC20(tokens[i]).balanceOf(address(this)) > 0) {
+                    IERC20(tokens[i]).transfer(_team, IERC20(tokens[i]).balanceOf(address(this)));
+                }
             } else {
-                payable(_team).transfer(address(this).balance);
+                if (address(this).balance > 0) {
+                    payable(_team).transfer(address(this).balance);
+                }
             }
         }
         isEnded = true;
