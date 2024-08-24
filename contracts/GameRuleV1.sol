@@ -51,11 +51,12 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
         __ReentrancyGuard_init();
     }
 
-    function create(string memory gameId) public onlyOperator {
+    function create(string memory gameId, uint256 expiresIn) public onlyOperator {
         uint256 roomCount = gameRoomCount[gameId];
         gameRoomCount[gameId] = roomCount + 1;
         uint256 roomId = roomCount + 1;
         address room = createGameRoom(gameId, roomId);
+        GameRoom(payable(room)).initialize(gameId, roomId, expiresIn);
         gameRoomAddress[gameId][roomId] = room;
         roomOwner[room] = gameId;
     }

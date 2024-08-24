@@ -24,7 +24,7 @@ contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControl
     }
 
     modifier onlyAllowGameRule() {
-        require(allowedGameRules[msg.sender], "Router: caller is not the game");
+        require(allowedGameRules[msg.sender], "Router: game rule not allowed");
         _;
     }
 

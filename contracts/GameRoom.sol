@@ -4,12 +4,13 @@ pragma solidity 0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract GameRoom is Ownable {
+contract GameRoom is Ownable, Initializable {
     using SafeERC20 for IERC20;
 
     string public gameId;
-    string public roomId;
+    uint256 public roomId;
     uint256 public deadline;
     bool public isEnded;
 
@@ -23,10 +24,12 @@ contract GameRoom is Ownable {
     event PlayerJoined(string plyrId);
     event PlayerLeft(string plyrId);
     event TokenRegistered(address token);
-    event GameEnded(string gameId, string roomId);
-    event GameClosed(string gameId, string roomId, address team);
+    event GameEnded(string gameId, uint256 roomId);
+    event GameClosed(string gameId, uint256 roomId, address team);
 
-    constructor(string memory _gameId, string memory _roomId, uint256 _expiresIn) Ownable(msg.sender) {
+    constructor() Ownable(msg.sender) {}
+
+    function initialize(string memory _gameId, uint256 _roomId, uint256 _expiresIn) external initializer {
         gameId = _gameId;
         roomId = _roomId;
         deadline = block.timestamp + _expiresIn;

@@ -13,8 +13,8 @@ describe("GameRoom", function () {
     [owner, user1, user2] = await ethers.getSigners();
 
     const GameRoom = await ethers.getContractFactory("GameRoom");
-    gameRoom = await GameRoom.deploy("testGame", "testRoom", 3600);
-
+    gameRoom = await GameRoom.deploy();
+    await gameRoom.initialize("testGame", 1, 3600);
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     erc20Token = await MockERC20.deploy("TestToken", "TT");
   });
@@ -26,7 +26,7 @@ describe("GameRoom", function () {
 
     it("Should set the correct game ID and room ID", async function () {
       expect(await gameRoom.gameId()).to.equal("testGame");
-      expect(await gameRoom.roomId()).to.equal("testRoom");
+      expect(await gameRoom.roomId()).to.equal(1);
     });
 
     it("Should set the correct deadline with ±5 seconds tolerance", async function () {
@@ -81,7 +81,7 @@ describe("GameRoom", function () {
 
   describe("Game ending", function () {
     it("Owner should be able to end the game when balances are zero", async function () {
-      await expect(gameRoom.end()).to.emit(gameRoom, "GameEnded").withArgs("testGame", "testRoom");
+      await expect(gameRoom.end()).to.emit(gameRoom, "GameEnded").withArgs("testGame", 1);
       expect(await gameRoom.isEnded()).to.be.true;
     });
 
@@ -94,12 +94,12 @@ describe("GameRoom", function () {
     it("Owner should be able to close the game after deadline", async function () {
       await owner.sendTransaction({ to: gameRoom.target, value: ethers.parseEther("1.0") });
       await gameRoom.registerToken(ZeroAddress);
-      
+
       await ethers.provider.send("evm_increaseTime", [3601]);
       await ethers.provider.send("evm_mine");
 
       await expect(gameRoom.close(user1.address))
-        .to.emit(gameRoom, "GameClosed").withArgs("testGame", "testRoom", user1.address);
+        .to.emit(gameRoom, "GameClosed").withArgs("testGame", 1, user1.address);
       expect(await gameRoom.isEnded()).to.be.true;
     });
 
