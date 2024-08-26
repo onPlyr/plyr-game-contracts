@@ -77,6 +77,7 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
         address room = gameRoomAddress[gameId][roomId];
         require(room != address(0), "GameRuleV1: room not found");
         require(GameRoom(payable(room)).isJoined(plyrId), "GameRuleV1: plyr not joined");
+        GameRoom(payable(room)).registerToken(token);
         if (token == address(0)) {
             address primary = IRegister(registerSC).getENSAddress(plyrId);
             IRouter(router).mirrorNativeTransfer(primary, payable(room), amount);
@@ -90,6 +91,7 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
         address room = gameRoomAddress[gameId][roomId];
         require(room != address(0), "GameRuleV1: room not found");
         require(GameRoom(payable(room)).isJoined(plyrId), "GameRuleV1: plyr not joined");
+        GameRoom(payable(room)).registerToken(token);
         uint256 fee = amount * platformFee / 100;
         uint256 amountAfterFee = amount - fee;
         if (token == address(0)) {
