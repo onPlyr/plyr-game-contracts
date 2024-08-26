@@ -39,9 +39,19 @@ describe("GameRoom", function () {
 
   describe("Player management", function () {
     it("Owner should be able to add players", async function () {
-      await expect(gameRoom.join(["player1", "player2"]))
-        .to.emit(gameRoom, "PlayerJoined").withArgs("player1")
-        .to.emit(gameRoom, "PlayerJoined").withArgs("player2");
+      const tx = await gameRoom.join(["player1", "player2"]);
+      const receipt = await tx.wait();
+      
+      const events = receipt.logs.filter(log => log.fragment.name === 'PlayerJoined');
+      const blockTimestamp = await ethers.provider.getBlock(receipt.blockNumber).then(block => block.timestamp);
+
+      for (const event of events) {
+        const [gameId, roomId, player, timestamp] = event.args;
+        expect(gameId).to.equal("testGame");
+        expect(roomId).to.equal(1);
+        expect(["player1", "player2"]).to.include(player);
+        expect(timestamp).to.be.closeTo(blockTimestamp, 5);
+      }
 
       expect(await gameRoom.isJoined("player1")).to.be.true;
       expect(await gameRoom.isJoined("player2")).to.be.true;
@@ -49,8 +59,19 @@ describe("GameRoom", function () {
 
     it("Owner should be able to remove players", async function () {
       await gameRoom.join(["player1", "player2"]);
-      await expect(gameRoom.leave(["player1"]))
-        .to.emit(gameRoom, "PlayerLeft").withArgs("player1");
+      
+      const tx = await gameRoom.leave(["player1"]);
+      const receipt = await tx.wait();
+      const event = receipt.logs.find(log => log.fragment.name === 'PlayerLeft');
+      const [, , , timestamp] = event.args;
+
+      const blockTimestamp = await ethers.provider.getBlock(receipt.blockNumber).then(block => block.timestamp);
+      
+      expect(timestamp).to.be.closeTo(blockTimestamp, 5);
+      
+      await expect(tx)
+        .to.emit(gameRoom, "PlayerLeft")
+        .withArgs("testGame", 1, "player1", timestamp);
 
       expect(await gameRoom.isJoined("player1")).to.be.false;
       expect(await gameRoom.isJoined("player2")).to.be.true;
