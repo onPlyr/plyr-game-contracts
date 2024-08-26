@@ -21,11 +21,12 @@ contract GameRoom is Ownable, Initializable {
 
     event NativeTransfer(address to, uint256 amount);
     event Erc20Transfer(address to, uint256 amount);
-    event PlayerJoined(string plyrId);
-    event PlayerLeft(string plyrId);
+    event PlayerJoined(string gameId, uint256 roomId, string plyrId, uint256 timestamp);
+    event PlayerLeft(string gameId, uint256 roomId, string plyrId, uint256 timestamp);
     event TokenRegistered(address token);
     event GameEnded(string gameId, uint256 roomId);
     event GameClosed(string gameId, uint256 roomId, address team);
+    event GameRoomInited(string gameId, uint256 roomId, uint256 deadline);
 
     constructor() Ownable(msg.sender) {}
 
@@ -33,6 +34,7 @@ contract GameRoom is Ownable, Initializable {
         gameId = _gameId;
         roomId = _roomId;
         deadline = block.timestamp + _expiresIn;
+        emit GameRoomInited(gameId, roomId, deadline);
     }
 
     receive() external payable {}
@@ -40,14 +42,14 @@ contract GameRoom is Ownable, Initializable {
     function join(string[] memory plyrIds) external onlyOwner {
         for (uint256 i = 0; i < plyrIds.length; i++) {
             joinedPlayers[plyrIds[i]] = true;
-            emit PlayerJoined(plyrIds[i]);
+            emit PlayerJoined(gameId, roomId, plyrIds[i], block.timestamp);
         }
     }
 
     function leave(string[] memory plyrIds) external onlyOwner {
         for (uint256 i = 0; i < plyrIds.length; i++) {
             joinedPlayers[plyrIds[i]] = false;
-            emit PlayerLeft(plyrIds[i]);
+            emit PlayerLeft(gameId, roomId, plyrIds[i], block.timestamp);
         }
     }
 
