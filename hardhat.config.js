@@ -40,6 +40,10 @@ module.exports = {
     }
   },
   networks: {
+    local: {
+      url: "http://127.0.0.1:8545",
+      accounts: [process.env.PK],
+    },
     polygonAmoy: {
       url: "https://polygon-amoy.blockpi.network/v1/rpc/public",
       accounts: [process.env.PK],
