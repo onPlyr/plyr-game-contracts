@@ -89,7 +89,7 @@ contract GameRoom is Ownable, Initializable {
                 }
             } else {
                 if (address(this).balance > 0) {
-                    payable(_team).transfer(address(this).balance);
+                    Address.sendValue(payable(_team), address(this).balance);
                 }
             }
         }
