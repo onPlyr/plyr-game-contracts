@@ -67,6 +67,14 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
         GameRoom(payable(room)).join(plyrIds);
     }
 
+    function isJoined(string memory gameId, uint256 roomId, string memory plyrId) public view returns (bool) {
+        address room = gameRoomAddress[gameId][roomId];
+        if (room == address(0)) {
+            return false;
+        }
+        return GameRoom(payable(room)).isJoined(plyrId);
+    }
+
     function leave(string memory gameId, uint256 roomId, string[] memory plyrIds) public onlyOperator {
         address room = gameRoomAddress[gameId][roomId];
         require(room != address(0), "GameRuleV1: room not found");
