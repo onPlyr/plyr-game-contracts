@@ -52,9 +52,13 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
     }
 
     function create(string memory gameId, uint256 expiresIn) public onlyOperator {
+        _create(gameId, expiresIn);
+    }
+
+    function _create(string memory gameId, uint256 expiresIn) internal returns (uint256 roomId) {
         uint256 roomCount = gameRoomCount[gameId];
         gameRoomCount[gameId] = roomCount + 1;
-        uint256 roomId = roomCount + 1;
+        roomId = roomCount + 1;
         address room = createGameRoom(gameId, roomId);
         GameRoom(payable(room)).initialize(gameId, roomId, expiresIn);
         gameRoomAddress[gameId][roomId] = room;
@@ -82,6 +86,10 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
     }
 
     function pay(string memory gameId, uint256 roomId, string memory plyrId, address token, uint256 amount) public onlyOperator {
+        _pay(gameId, roomId, plyrId, token, amount);
+    }
+
+    function _pay(string memory gameId, uint256 roomId, string memory plyrId, address token, uint256 amount) internal {
         address room = gameRoomAddress[gameId][roomId];
         require(room != address(0), "GameRuleV1: room not found");
         require(GameRoom(payable(room)).isJoined(plyrId), "GameRuleV1: plyr not joined");
@@ -96,6 +104,10 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
     }
 
     function earn(string memory gameId, uint256 roomId, string memory plyrId, address token, uint256 amount) public onlyOperator {
+        _earn(gameId, roomId, plyrId, token, amount);
+    }
+
+    function _earn(string memory gameId, uint256 roomId, string memory plyrId, address token, uint256 amount) internal {
         address room = gameRoomAddress[gameId][roomId];
         require(room != address(0), "GameRuleV1: room not found");
         require(GameRoom(payable(room)).isJoined(plyrId), "GameRuleV1: plyr not joined");
@@ -123,6 +135,25 @@ contract GameRuleV1 is OwnableUpgradeable, ReentrancyGuardUpgradeable, Multicall
         address room = gameRoomAddress[gameId][roomId];
         require(room != address(0), "GameRuleV1: room not found");
         GameRoom(payable(room)).close(team);
+    }
+
+    function createJoinPay(string memory gameId, uint256 expiresIn, string[] memory plyrIds, address[] memory tokens, uint256[] memory amounts) public onlyOperator {
+        uint256 roomId = _create(gameId, expiresIn);
+        address room = gameRoomAddress[gameId][roomId];
+        GameRoom(payable(room)).join(plyrIds);
+        for (uint256 i = 0; i < plyrIds.length; i++) {
+            _pay(gameId, roomId, plyrIds[i], tokens[i], amounts[i]);
+        }
+    }
+
+    function earnLeaveEnd(string memory gameId, uint256 roomId, string[] memory plyrIds, address[] memory tokens, uint256[] memory amounts) public onlyOperator {
+        for (uint256 i = 0; i < plyrIds.length; i++) {
+            _earn(gameId, roomId, plyrIds[i], tokens[i], amounts[i]);
+        }
+        address room = gameRoomAddress[gameId][roomId];
+        require(room != address(0), "GameRuleV1: room not found");
+        GameRoom(payable(room)).leave(plyrIds);
+        GameRoom(payable(room)).end();
     }
 
     function configOperator(address _operator, bool _status) external onlyOwner {
