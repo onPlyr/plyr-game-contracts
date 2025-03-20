@@ -63,6 +63,10 @@ contract GameChipFactory is OwnableUpgradeable {
     }
 
     function gameTransfer(address _chip, address _from, address _to, uint256 _amount) external onlyGameRouter {
+        if (_amount == 0) {
+            return;
+        }
+
         if (IERC20(_chip).balanceOf(_to) == 0) {
             chipHolderCount[_chip]++;
         }

@@ -7,12 +7,14 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "./interfaces/IRegister.sol";
 import "./interfaces/IMirror.sol";
 import "./Multicall.sol";
+import "./interfaces/IGameChipFactory.sol";
 
 contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControlUpgradeable, Multicall {
     
     address public registerSC;
     address[] public gameRules;
     mapping(address => bool) public allowedGameRules;
+    address public gameChipFactory;
 
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
@@ -88,5 +90,36 @@ contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControl
     function mirrorApprove(address _token, address _from, address _spender, uint256 _amount) external nonReentrant onlyAllowGameRule {
         (address mirror,,) = IRegister(registerSC).getUserInfo(_from);
         IMirror(mirror).approve(_token, _spender, _amount);
+    }
+
+    // game chips functions
+    function setGameChipFactory(address _gameChipFactory) external onlyOwner {
+        gameChipFactory = _gameChipFactory;
+    }
+
+    function createGameChip(string memory _gameId, string memory _name, string memory _symbol) external onlyOperator {
+        IGameChipFactory(gameChipFactory).createChip(_gameId, _name, _symbol);
+    }
+
+    function mintGameChips(address[] memory _chips, address[] memory _to, uint256[] memory _amounts) external onlyOperator {
+        for (uint256 i = 0; i < _chips.length; i++) {
+            IGameChipFactory(gameChipFactory).mint(_chips[i], _to[i], _amounts[i]);
+        }
+    }
+
+    function burnGameChips(address[] memory _chips, address[] memory _from, uint256[] memory _amounts) external onlyOperator {
+        for (uint256 i = 0; i < _chips.length; i++) {
+            IGameChipFactory(gameChipFactory).burn(_chips[i], _from[i], _amounts[i]);
+        }
+    }
+
+    function gameTransferGameChips(address[] memory _chips, address[] memory _from, address[] memory _to, uint256[] memory _amounts) external onlyOperator {
+        for (uint256 i = 0; i < _chips.length; i++) {
+            IGameChipFactory(gameChipFactory).gameTransfer(_chips[i], _from[i], _to[i], _amounts[i]);
+        }
+    }
+
+    function chipInfo(address _chip) external view returns(address tokenAddress, string memory gameId, string memory name, string memory symbol, uint256 totalSupply, uint256 holderCount) {
+        return IGameChipFactory(gameChipFactory).chipInfo(_chip);
     }
 }
