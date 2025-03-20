@@ -7,4 +7,5 @@ interface IRegister {
     function deleteUser(address _primary) external;
     function computeMirrorAddress(address _primary) external view returns (address);
     function getUserInfo(address _primary) external view returns (address mirror, string memory username, uint64 chainId);
+    function getENSAddress(string calldata _ensName) external view returns (address);
 }

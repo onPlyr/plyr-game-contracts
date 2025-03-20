@@ -101,21 +101,25 @@ contract Router is OwnableUpgradeable, ReentrancyGuardUpgradeable, AccessControl
         IGameChipFactory(gameChipFactory).createChip(_gameId, _name, _symbol);
     }
 
-    function mintGameChips(address[] memory _chips, address[] memory _to, uint256[] memory _amounts) external onlyOperator {
+    function mintGameChips(address[] memory _chips, string[] memory _plyrIds, uint256[] memory _amounts) external onlyOperator {
         for (uint256 i = 0; i < _chips.length; i++) {
-            IGameChipFactory(gameChipFactory).mint(_chips[i], _to[i], _amounts[i]);
+            address _to = IRegister(registerSC).getENSAddress(_plyrIds[i]);
+            IGameChipFactory(gameChipFactory).mint(_chips[i], _to, _amounts[i]);
         }
     }
 
-    function burnGameChips(address[] memory _chips, address[] memory _from, uint256[] memory _amounts) external onlyOperator {
+    function burnGameChips(address[] memory _chips, string[] memory _plyrIds, uint256[] memory _amounts) external onlyOperator {
         for (uint256 i = 0; i < _chips.length; i++) {
-            IGameChipFactory(gameChipFactory).burn(_chips[i], _from[i], _amounts[i]);
+            address _from = IRegister(registerSC).getENSAddress(_plyrIds[i]);
+            IGameChipFactory(gameChipFactory).burn(_chips[i], _from, _amounts[i]);
         }
     }
 
-    function gameTransferGameChips(address[] memory _chips, address[] memory _from, address[] memory _to, uint256[] memory _amounts) external onlyOperator {
+    function gameTransferGameChips(address[] memory _chips, string[] memory _fromPlyrIds, string[] memory _toPlyrIds, uint256[] memory _amounts) external onlyOperator {
         for (uint256 i = 0; i < _chips.length; i++) {
-            IGameChipFactory(gameChipFactory).gameTransfer(_chips[i], _from[i], _to[i], _amounts[i]);
+            address _from = IRegister(registerSC).getENSAddress(_fromPlyrIds[i]);
+            address _to = IRegister(registerSC).getENSAddress(_toPlyrIds[i]);
+            IGameChipFactory(gameChipFactory).gameTransfer(_chips[i], _from, _to, _amounts[i]);
         }
     }
 
