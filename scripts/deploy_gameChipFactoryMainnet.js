@@ -1,0 +1,54 @@
+// scripts/deploy.js
+
+const OWNER_ADDRESS = '0x800B3fc43E42255efc2B38279608b1a142372b0a';
+const ROUTER_ADDRESS = '0x0EF26D14851c84Dca15CB0265d9EA74f9cAEb828';
+
+async function main() {
+  const [deployer] = await ethers.getSigners();
+
+  console.log("Deploying contracts with the account:", deployer.address);
+
+  const LogicContractName = 'GameChipFactory';
+
+  // Deploy logic contract
+  const Logic = await ethers.getContractFactory(LogicContractName);
+
+  const logic = await Logic.deploy();
+  await logic.waitForDeployment();
+
+  // Deploy proxy contract
+  const Proxy = await ethers.getContractFactory("PlyrProxy");
+  const proxy = await Proxy.deploy(
+    logic.target,
+    OWNER_ADDRESS,
+    '0x'
+  );
+  await proxy.waitForDeployment();
+
+  // Get proxyAdmin address from the deployment transaction
+  const receipt = await proxy.deploymentTransaction().wait();
+  const logs = receipt.logs;
+  const proxyAdminLog = logs.find((log) => proxy.interface.parseLog(log)?.name === 'AdminChanged');
+  const proxyAdminAddress = proxyAdminLog.args[1];
+  console.log("ProxyAdmin address:", proxyAdminAddress);
+
+  const GameChip = await ethers.getContractFactory('GameChip');
+  const gameChip = await GameChip.deploy();
+  await gameChip.waitForDeployment();
+
+  console.log("GameChip address:", gameChip.target);
+
+  const executor = Logic.attach(proxy.target);
+  console.log(LogicContractName, "address:", executor.target);
+
+  await executor.initialize(gameChip.target, OWNER_ADDRESS, ROUTER_ADDRESS);
+
+  console.log("Contract deployed successfully!");
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });
