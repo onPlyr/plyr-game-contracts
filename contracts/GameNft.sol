@@ -46,12 +46,17 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
     }
 
     function _update(address to, uint256 tokenId, address auth) internal override(ERC721Upgradeable) returns (address) {
-        // mint or transfer
+        // mint and transfer in
         if (to != address(0) && balanceOf(to) == 0) {
             holderCount += 1;
         }
 
         address previousOwner = super._update(to, tokenId, auth);
+
+        // transfer out
+        if (previousOwner != address(0) && balanceOf(previousOwner) == 0) {
+            holderCount -= 1;
+        }
 
         // burn
         if (to == address(0) && balanceOf(previousOwner) == 0) {
