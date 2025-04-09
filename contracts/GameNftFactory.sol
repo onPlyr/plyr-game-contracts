@@ -13,7 +13,6 @@ contract GameNftFactory is OwnableUpgradeable {
 
     mapping(address => string) public nftGameId; // nftAddress => gameId
     mapping(uint256 => address) public nfts; // nftId => nftAddress
-    mapping(address => uint256) public nftHolderCount; // nftAddress => holderCount
 
     modifier onlyOperator() { 
         require(msg.sender == operator, "GameNftFactory: caller is not the game router");
@@ -43,10 +42,6 @@ contract GameNftFactory is OwnableUpgradeable {
     }
 
     function mint(address _nft, address _to, string memory _tokenURI) public onlyOperator {
-        if (IERC20(_nft).balanceOf(_to) == 0) {
-            nftHolderCount[_nft]++;
-        }
-        
         GameNft(_nft).mint(_to, _tokenURI);
     }
 
@@ -56,30 +51,18 @@ contract GameNftFactory is OwnableUpgradeable {
         }
     }
 
-    function burn(address _nft, address _from, uint256 _tokenId) public onlyOperator {
+    function burn(address _nft, uint256 _tokenId) public onlyOperator {
         GameNft(_nft).burn(_tokenId);
-
-        if (IERC20(_nft).balanceOf(address(_from)) == 0) {
-            nftHolderCount[_nft]--;
-        }
     }
 
-    function batchBurn(address[] memory _nft, address[] memory _from, uint256[] memory _tokenId) external onlyOperator {
-        for (uint256 i = 0; i < _from.length; i++) {
-            burn(_nft[i], _from[i], _tokenId[i]);
+    function batchBurn(address[] memory _nft, uint256[] memory _tokenId) external onlyOperator {
+        for (uint256 i = 0; i < _nft.length; i++) {
+            burn(_nft[i], _tokenId[i]);
         }
     }
 
     function gameTransfer(address _nft, address _from, address _to, uint256 _tokenId) public onlyOperator {
-        if (IERC20(_nft).balanceOf(_to) == 0) {
-            nftHolderCount[_nft]++;
-        }
-
         GameNft(_nft).gameTransfer(_from, _to, _tokenId);
-
-        if (IERC20(_nft).balanceOf(_from) == 0) {
-            nftHolderCount[_nft]--;
-        }
     }
 
     function batchGameTransfer(address[] memory _nft, address[] memory _from, address[] memory _to, uint256[] memory _tokenId) external onlyOperator {
@@ -89,7 +72,11 @@ contract GameNftFactory is OwnableUpgradeable {
     }
 
     function nftInfo(address _nft) external view returns(address tokenAddress, string memory gameId, string memory name, string memory symbol, uint256 totalSupply, uint256 holderCount) {
-        return (address(_nft), nftGameId[_nft], GameNft(_nft).name(), GameNft(_nft).symbol(), GameNft(_nft).totalSupply(), nftHolderCount[_nft]);
+        return (address(_nft), nftGameId[_nft], GameNft(_nft).name(), GameNft(_nft).symbol(), GameNft(_nft).totalSupply(), nftHolderCount(_nft));
+    }
+
+    function nftHolderCount(address _nft) public view returns(uint256) {
+        return GameNft(_nft).holderCount();
     }
 
     function configOperator(address _operator) external onlyOwner {

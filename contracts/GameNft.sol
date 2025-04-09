@@ -2,12 +2,12 @@
 pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 
 contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
     string public gameId;
     uint256 public totalSupply;
+    uint256 public holderCount;
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -43,5 +43,20 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721URIStorageUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    function _update(address to, uint256 tokenId, address auth) internal override(ERC721Upgradeable) returns (address) {
+        // mint or transfer
+        if (to != address(0) && balanceOf(to) == 0) {
+            holderCount += 1;
+        }
+
+        address previousOwner = super._update(to, tokenId, auth);
+
+        // burn
+        if (to == address(0) && balanceOf(previousOwner) == 0) {
+            holderCount -= 1;
+        }
+        return previousOwner;
     }
 }
