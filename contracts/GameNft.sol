@@ -22,7 +22,6 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
 
     function mint(address _to, string memory _tokenURI) public onlyOwner returns (uint256) {
         uint256 tokenId = (totalSupply + 1);
-        totalSupply = tokenId;
         _safeMint(_to, tokenId);
         _setTokenURI(tokenId, _tokenURI);
         return tokenId;
@@ -30,7 +29,6 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
 
     function burn(uint256 _tokenId) public onlyOwner {
         _burn(_tokenId);
-        totalSupply -= 1;
     }
 
     function gameTransfer(address _from, address _to, uint256 _tokenId) public onlyOwner {
@@ -56,6 +54,16 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
         // transfer out
         if (previousOwner != address(0) && balanceOf(previousOwner) == 0) {
             holderCount -= 1;
+        }
+
+        // mint
+        if (previousOwner == address(0) && to != address(0)) {
+            totalSupply += 1;
+        }
+
+        // burn
+        if (previousOwner != address(0) && to == address(0)) {
+            totalSupply -= 1;
         }
 
         // burn
