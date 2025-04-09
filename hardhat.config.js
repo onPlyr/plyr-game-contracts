@@ -50,7 +50,7 @@ module.exports = {
       gasPrice: 5e9,
     },
     bscTestnet: {
-      url: "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+      url: "https://bsc-testnet-rpc.publicnode.com",
       accounts: [process.env.PK],
     },
     arbSepolia: {
@@ -62,7 +62,7 @@ module.exports = {
       accounts: [process.env.PK],
     },
     sepolia: {
-      url: "https://rpc2.sepolia.org",
+      url: "https://ethereum-sepolia-rpc.publicnode.com",
       accounts: [process.env.PK],
     },
     fuji: {
