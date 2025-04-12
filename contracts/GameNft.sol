@@ -3,10 +3,10 @@ pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
-contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
+contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable {
     string public gameId;
-    uint256 public totalSupply;
     uint256 public holderCount;
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -17,11 +17,12 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
         __Ownable_init(_owner);
         __ERC721_init(_name, _symbol);
         __ERC721URIStorage_init();
+        __ERC721Enumerable_init();
         gameId = _gameId;
     }
 
     function mint(address _to, string memory _tokenURI) public onlyOwner returns (uint256) {
-        uint256 tokenId = (totalSupply + 1);
+        uint256 tokenId = totalSupply() + 1;
         _safeMint(_to, tokenId);
         _setTokenURI(tokenId, _tokenURI);
         return tokenId;
@@ -35,15 +36,15 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
         _safeTransfer(_from, _to, _tokenId, "");
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721URIStorageUpgradeable) returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override(ERC721URIStorageUpgradeable, ERC721Upgradeable) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721URIStorageUpgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
-    function _update(address to, uint256 tokenId, address auth) internal override(ERC721Upgradeable) returns (address) {
+    function _update(address to, uint256 tokenId, address auth) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (address) {
         // mint and transfer in
         if (to != address(0) && balanceOf(to) == 0) {
             holderCount += 1;
@@ -56,20 +57,14 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable {
             holderCount -= 1;
         }
 
-        // mint
-        if (previousOwner == address(0) && to != address(0)) {
-            totalSupply += 1;
-        }
-
-        // burn
-        if (previousOwner != address(0) && to == address(0)) {
-            totalSupply -= 1;
-        }
-
         // burn
         if (to == address(0) && balanceOf(previousOwner) == 0) {
             holderCount -= 1;
         }
         return previousOwner;
+    }
+
+    function _increaseBalance(address account, uint128 value) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
+        super._increaseBalance(account, value);
     }
 }
