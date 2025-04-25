@@ -64,7 +64,8 @@ contract GameNftFactory is OwnableUpgradeable {
     }
 
     function createNftRemote(string memory _gameId, string memory _name, string memory _symbol) external onlyOperator {
-        bytes memory message = abi.encode(MessageType.CREATE_NFT, _gameId, _name, _symbol);
+        bytes memory data = abi.encode(_gameId, _name, _symbol);
+        bytes memory message = abi.encode(MessageType.CREATE_NFT, data);
         address[] memory allowedRelayerAddresses = new address[](1);
         allowedRelayerAddresses[0] = relayer;
         TeleporterMessageInput memory input = TeleporterMessageInput({
@@ -82,7 +83,8 @@ contract GameNftFactory is OwnableUpgradeable {
     }
 
     function batchMintRemote(address[] memory _nft, address[] memory _to, string[] memory _tokenURI) external onlyOperator {
-        bytes memory message = abi.encode(MessageType.BATCH_MINT, _nft, _to, _tokenURI);
+        bytes memory data = abi.encode(_nft, _to, _tokenURI);
+        bytes memory message = abi.encode(MessageType.BATCH_MINT, data);
         address[] memory allowedRelayerAddresses = new address[](1);
         allowedRelayerAddresses[0] = relayer;
         TeleporterMessageInput memory input = TeleporterMessageInput({
@@ -100,7 +102,8 @@ contract GameNftFactory is OwnableUpgradeable {
     }
 
     function batchBurnRemote(address[] memory _nft, uint256[] memory _tokenId) external onlyOperator {
-        bytes memory message = abi.encode(MessageType.BATCH_BURN, _nft, _tokenId);
+        bytes memory data = abi.encode(_nft, _tokenId);
+        bytes memory message = abi.encode(MessageType.BATCH_BURN, data);
         address[] memory allowedRelayerAddresses = new address[](1);
         allowedRelayerAddresses[0] = relayer;
         TeleporterMessageInput memory input = TeleporterMessageInput({
@@ -118,7 +121,8 @@ contract GameNftFactory is OwnableUpgradeable {
     }
 
     function batchGameTransferRemote(address[] memory _nft, address[] memory _from, address[] memory _to, uint256[] memory _tokenId) external onlyOperator {
-        bytes memory message = abi.encode(MessageType.BATCH_GAME_TRANSFER, _nft, _from, _to, _tokenId);
+        bytes memory data = abi.encode(_nft, _from, _to, _tokenId);
+        bytes memory message = abi.encode(MessageType.BATCH_GAME_TRANSFER, data);
         address[] memory allowedRelayerAddresses = new address[](1);
         allowedRelayerAddresses[0] = relayer;
         TeleporterMessageInput memory input = TeleporterMessageInput({
@@ -150,7 +154,7 @@ contract GameNftFactory is OwnableUpgradeable {
 
     function _batchMint(address[] memory _nft, address[] memory _to, string[] memory _tokenURI) internal {
         for (uint256 i = 0; i < _to.length; i++) {
-            mint(_nft[i], _to[i], _tokenURI[i]);
+            GameNft(_nft[i]).mint(_to[i], _tokenURI[i]);
         }
     }
 
@@ -160,7 +164,7 @@ contract GameNftFactory is OwnableUpgradeable {
 
     function _batchBurn(address[] memory _nft, uint256[] memory _tokenId) internal {
         for (uint256 i = 0; i < _nft.length; i++) {
-            burn(_nft[i], _tokenId[i]);
+            GameNft(_nft[i]).burn(_tokenId[i]);
         }
     }
 
@@ -170,7 +174,7 @@ contract GameNftFactory is OwnableUpgradeable {
 
     function _batchGameTransfer(address[] memory _nft, address[] memory _from, address[] memory _to, uint256[] memory _tokenId) internal {
         for (uint256 i = 0; i < _from.length; i++) {
-            gameTransfer(_nft[i], _from[i], _to[i], _tokenId[i]);
+            GameNft(_nft[i]).gameTransfer(_from[i], _to[i], _tokenId[i]);
         }
     }
 
@@ -235,4 +239,3 @@ contract GameNftFactory is OwnableUpgradeable {
         nftImplementation = _implementation;
     }
 }
-
