@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable {
     string public gameId;
     uint256 public holderCount;
+    uint256 public mintCount;
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -22,9 +23,10 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable, ERC721Enume
     }
 
     function mint(address _to, string memory _tokenURI) public onlyOwner returns (uint256) {
-        uint256 tokenId = totalSupply() + 1;
+        uint256 tokenId = mintCount + 1;
         _safeMint(_to, tokenId);
         _setTokenURI(tokenId, _tokenURI);
+        mintCount += 1;
         return tokenId;
     }
 
