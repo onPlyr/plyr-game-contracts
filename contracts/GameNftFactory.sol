@@ -47,8 +47,8 @@ contract GameNftFactory is OwnableUpgradeable {
         operator = _operator;
     }
 
-    function createNft(string memory _gameId, string memory _name, string memory _symbol) external onlyOperator {
-        _createNft(_gameId, _name, _symbol);
+    function createNft(string memory _gameId, string memory _name, string memory _symbol, bool _isSoulBind) external onlyOperator {
+        _createNft(_gameId, _name, _symbol, _isSoulBind);
     }
 
     function batchMint(address[] memory _nft, address[] memory _to, string[] memory _tokenURI) external onlyOperator {
@@ -63,8 +63,8 @@ contract GameNftFactory is OwnableUpgradeable {
         _batchGameTransfer(_nft, _from, _to, _tokenId);
     }
 
-    function createNftRemote(string memory _gameId, string memory _name, string memory _symbol) external onlyOperator {
-        bytes memory data = abi.encode(_gameId, _name, _symbol);
+    function createNftRemote(string memory _gameId, string memory _name, string memory _symbol, bool _isSoulBind) external onlyOperator {
+        bytes memory data = abi.encode(_gameId, _name, _symbol, _isSoulBind);
         bytes memory message = abi.encode(MessageType.CREATE_NFT, data);
         address[] memory allowedRelayerAddresses = new address[](1);
         allowedRelayerAddresses[0] = relayer;
@@ -139,9 +139,9 @@ contract GameNftFactory is OwnableUpgradeable {
         teleporterMessenger.sendCrossChainMessage(input);
     }
 
-    function _createNft(string memory _gameId, string memory _name, string memory _symbol) internal {
+    function _createNft(string memory _gameId, string memory _name, string memory _symbol, bool _isSoulBind) internal {
         address nft = Clones.clone(nftImplementation);
-        GameNft(nft).initialize(address(this), _gameId, _name, _symbol);
+        GameNft(nft).initialize(address(this), _gameId, _name, _symbol, _isSoulBind);
         nftGameId[nft] = _gameId;
         nfts[totalNftCount] = nft;
         totalNftCount++;
@@ -189,8 +189,8 @@ contract GameNftFactory is OwnableUpgradeable {
         (MessageType messageType, bytes memory data) = abi.decode(message, (MessageType, bytes));
         
         if (messageType == MessageType.CREATE_NFT) {
-            (string memory gameId, string memory name, string memory symbol) = abi.decode(data, (string, string, string));
-            _createNft(gameId, name, symbol);
+            (string memory gameId, string memory name, string memory symbol, bool isSoulBind) = abi.decode(data, (string, string, string, bool));
+            _createNft(gameId, name, symbol, isSoulBind);
         } else if (messageType == MessageType.BATCH_MINT) {
             (address[] memory _nft, address[] memory _to, string[] memory _tokenURI) = abi.decode(data, (address[], address[], string[]));
             _batchMint(_nft, _to, _tokenURI);

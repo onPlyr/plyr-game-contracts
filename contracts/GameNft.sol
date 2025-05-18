@@ -9,17 +9,19 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable, ERC721Enume
     string public gameId;
     uint256 public holderCount;
     uint256 public mintCount;
+    bool public isSoulBind;
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address _owner, string memory _gameId, string memory _name, string memory _symbol) public initializer {
+    function initialize(address _owner, string memory _gameId, string memory _name, string memory _symbol, bool _isSoulBind) public initializer {
         __Ownable_init(_owner);
         __ERC721_init(_name, _symbol);
         __ERC721URIStorage_init();
         __ERC721Enumerable_init();
         gameId = _gameId;
+        isSoulBind = _isSoulBind;
     }
 
     function mint(address _to, string memory _tokenURI) public onlyOwner returns (uint256) {
@@ -47,6 +49,8 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable, ERC721Enume
     }
 
     function _update(address to, uint256 tokenId, address auth) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (address) {
+        require(!isSoulBind, "GameNft: Soul bind nft not allowed to transfer");
+
         // mint and transfer in
         if (to != address(0) && balanceOf(to) == 0) {
             holderCount += 1;
