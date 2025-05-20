@@ -56,7 +56,7 @@ contract GameNft is OwnableUpgradeable, ERC721URIStorageUpgradeable, ERC721Enume
 
         address previousOwner = super._update(to, tokenId, auth);
 
-        require(!isSoulBind || previousOwner == address(0), "GameNft: Soul bind nft not allowed to transfer");
+        require(!isSoulBind || previousOwner == address(0) || to == address(0), "GameNft: Soul bind nft not allowed to transfer");
 
         // transfer out or burn
         if (previousOwner != address(0) && balanceOf(previousOwner) == 0) {
